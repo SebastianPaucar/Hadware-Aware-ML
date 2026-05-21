@@ -1,0 +1,22 @@
+name: ha-ml
+channels:
+  - conda-forge
+  - pytorch
+dependencies:
+  - python=3.11
+  - numpy
+  - scipy
+  - pandas
+  - matplotlib
+  - h5py
+  - scikit-learn
+  - mplhep
+  - pytorch>=2.5
+  - pip
+  - pip:
+      - tensorflow>=2.18
+      - tf-keras>=2.18
+      - keras>=3.6.0
+      - jax>=0.4.28
+      - jaxlib>=0.4.28
+      - HGQ2
