@@ -1,0 +1,13 @@
+Bootstrap: docker
+From: almalinux:9
+
+%setup
+    mkdir -p ${APPTAINER_ROOTFS}/uufs
+    mkdir -p ${APPTAINER_ROOTFS}/scratch
+    mkdir -p ${APPTAINER_ROOTFS}/home
+
+%post
+    dnf install -y --allowerasing --nobest curl git wget which tar
+
+%runscript
+    exec bash
