@@ -200,3 +200,38 @@ Configure Keras 3 to use TensorFlow as the backend runtime instead of JAX or PyT
 ```bash
 (ha-ml) Apptainer> export KERAS_BACKEND=tensorflow
 ```
+
+# Quick Setup
+
+Consider:
+
+* `alma9-haml.def`: Apptainer Docker-based manifest that configures the full GPU-aware `ha-ml` AlmaLinux environment end-to-end.
+* `set-up-sandbox.sh`: Sets up the fakeroot sandbox associated with `alma9-haml.def` for continuous development.
+* `set-up-sif.sh`: Builds the resulting persistent, immutable `.sif` image from the sandbox.
+
+To set up the environment properly, follow these steps:
+ 
+**1. Set up the sandbox:**
+
+```bash
+nohup bash set-up-sandbox.sh > build_sandbox.log 2>&1 &
+```
+
+To enter the container through the sandbox for development:
+
+```bash
+apptainer shell --writable --fakeroot --nv --bind /uufs/chpc.utah.edu/sys/spack/v019/linux-rocky8-nehalem/gcc-8.5.0/cuda-12.5.0-7pt27rceb2uulofwak7zo3xkzspxgkg2:/usr/local/cuda alma9-haml
+```
+
+**2. Build the image:**
+
+```bash
+nohup bash set-up-sif.sh > build_sif.log 2>&1 &
+```
+
+To enter the container through the `.sif` image:
+
+```bash
+apptainer shell --nv --bind /uufs/chpc.utah.edu/sys/spack/v019/linux-rocky8-nehalem/gcc-8.5.0/cuda-12.5.0-7pt27rceb2uulofwak7zo3xkzspxgkg2:/usr/local/cuda alma9-haml.sif
+```
+
