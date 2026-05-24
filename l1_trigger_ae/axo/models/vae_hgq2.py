@@ -46,21 +46,24 @@ def get_encoder(config):
         place='weight',
         overflow_mode='SAT_SYM',
         round_mode='RND',
-        init_bw=ap_initial_kernel
+        b0=max(ap_initial_kernel, 8),
+        i0=2
     )
     bq = QuantizerConfig(
         q_type='kbi',
         place='weight',
         overflow_mode='SAT_SYM',
         round_mode='RND',
-        init_bw=ap_initial_kernel
+        b0=max(ap_initial_kernel, 8),
+        i0=2
     )
     iq = QuantizerConfig(
         q_type='kif',
         place='datalane',
         overflow_mode='WRAP',
         round_mode='RND',
-        init_bw=ap_initial_activation
+        i0=2,
+        f0=max(ap_initial_activation, 8)
     )
 
     # Latent layer quantizer configs — higher precision
@@ -69,21 +72,24 @@ def get_encoder(config):
         place='weight',
         overflow_mode='SAT_SYM',
         round_mode='RND',
-        init_bw=max(ap_initial_kernel, 12)
+        b0=max(ap_initial_kernel, 12),
+        i0=2
     )
     bq_latent = QuantizerConfig(
         q_type='kbi',
         place='weight',
         overflow_mode='SAT_SYM',
         round_mode='RND',
-        init_bw=max(ap_initial_kernel, 12)
+        b0=max(ap_initial_kernel, 12),
+        i0=2
     )
     iq_latent = QuantizerConfig(
         q_type='kif',
         place='datalane',
         overflow_mode='WRAP',
         round_mode='RND',
-        init_bw=max(ap_initial_activation, 12)
+        i0=2,
+        f0=max(ap_initial_activation, 12)
     )
 
     with LayerConfigScope(enable_ebops=True, beta0=beta):
