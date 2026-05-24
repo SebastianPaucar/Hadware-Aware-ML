@@ -1,7 +1,7 @@
 import os
 import json
 import h5py
-from . import data_util
+from .. import data_util
 
 
 def run(config):

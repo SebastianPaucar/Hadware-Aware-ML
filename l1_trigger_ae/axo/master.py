@@ -24,15 +24,15 @@ def main(slave={}, data_creation=False, train_model=False, inference=False):
     _setup_reproducibility(config)
 
     if data_creation:
-        from .create_data import run as run_data_creation
+        from .modules.create_data import run as run_data_creation
         run_data_creation(config)
 
     if train_model:
-        from .train import run as run_training
+        from .modules.train import run as run_training
         run_training(config)
 
     if inference:
-        from .inference import run as run_inference
+        from .modules.inference import run as run_inference
         run_inference(config)
 
     print("Run completing exiting ...")

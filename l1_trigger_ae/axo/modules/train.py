@@ -4,13 +4,13 @@ import h5py
 from keras.models import Model
 from hgq.utils.sugar import FreeEBOPs
 
-from . import losses
-from . import models
-from . import optim
-from . import metric
-from . import callbacks as axo_callbacks
-from . import utilities
-from .callbacks import BitwidthLogger, PruningMetrics
+from .. import losses
+from .. import models
+from .. import optim
+from .. import metric
+from .. import callbacks as axo_callbacks
+from .. import utilities
+from ..callbacks import BitwidthLogger, PruningMetrics
 
 
 def run(config):

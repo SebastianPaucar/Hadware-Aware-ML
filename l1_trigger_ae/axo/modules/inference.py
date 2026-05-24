@@ -1,5 +1,5 @@
 from keras.models import load_model
-from . import metric
+from .. import metric
 
 
 def run(config):
