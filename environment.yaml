@@ -19,4 +19,4 @@ dependencies:
       - keras>=3.6.0
       - jax>=0.4.28
       - jaxlib>=0.4.28
-      - HGQ2
+      - git+https://github.com/calad0i/HGQ2.git
