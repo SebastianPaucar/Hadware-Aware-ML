@@ -1,0 +1,73 @@
+Bootstrap: docker
+From: almalinux:9
+
+%setup
+    mkdir -p ${APPTAINER_ROOTFS}/uufs
+    mkdir -p ${APPTAINER_ROOTFS}/scratch
+    mkdir -p ${APPTAINER_ROOTFS}/home
+    mkdir -p ${APPTAINER_ROOTFS}/usr/local/cuda
+    mkdir -p ${APPTAINER_ROOTFS}/usr/local/cudnn
+
+%files
+    Miniconda3-latest-Linux-x86_64.sh /opt/Miniconda3-latest-Linux-x86_64.sh
+    environment.yaml /opt/environment.yaml
+
+%post
+    dnf install -y --allowerasing --nobest curl git wget which tar vim
+
+    # GPU support placeholders for --nv bind mounts
+    mkdir -p /usr/share/egl/egl_external_platform.d
+    mkdir -p /usr/share/nvidia
+    mkdir -p /usr/share/glvnd/egl_vendor.d
+    mkdir -p /usr/share/vulkan/implicit_layer.d
+    mkdir -p /var/run/nvidia-persistenced
+    touch /usr/bin/nvidia-smi
+    touch /usr/bin/nvidia-debugdump
+    touch /usr/bin/nvidia-persistenced
+    touch /usr/bin/nvidia-cuda-mps-control
+    touch /usr/bin/nvidia-cuda-mps-server
+    touch /usr/share/nvidia/nvoptix.bin
+    touch /var/run/nvidia-persistenced/socket
+    touch /usr/share/vulkan/implicit_layer.d/nvidia_layers.json
+    touch /usr/share/egl/egl_external_platform.d/15_nvidia_gbm.json
+    touch /usr/share/egl/egl_external_platform.d/10_nvidia_wayland.json
+    touch /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+
+    # Install Miniconda
+    bash /opt/Miniconda3-latest-Linux-x86_64.sh -b -p /opt/conda
+    export PATH="/opt/conda/bin:$PATH"
+
+    # Accept Anaconda ToS
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+
+    # Create the ha-ml environment using only conda-forge
+    conda env create -f /opt/environment.yaml
+
+    # Install CUDA-enabled PyTorch
+    /opt/conda/envs/ha-ml/bin/pip install torch==2.5.1+cu124 --index-url https://download.pytorch.org/whl/cu124
+
+    # Install cuDNN 9.3 for TensorFlow 2.21
+    /opt/conda/envs/ha-ml/bin/pip install nvidia-cudnn-cu12==9.3.0.75
+
+    # Install JAX with CUDA support
+    /opt/conda/envs/ha-ml/bin/pip install "jax[cuda12]" --find-links https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+
+    # Pin nvidia lib versions to avoid conflicts between JAX, PyTorch and TensorFlow
+    /opt/conda/envs/ha-ml/bin/pip install \
+        nvidia-cudnn-cu12==9.3.0.75 \
+        nvidia-cublas-cu12==12.4.5.8 \
+        nvidia-cuda-nvrtc-cu12==12.4.127 \
+        --force-reinstall
+
+    conda clean -afy
+
+%environment
+    export PATH="/opt/conda/bin:/usr/local/cuda/bin:$PATH"
+    export LD_LIBRARY_PATH="/opt/conda/envs/ha-ml/lib/python3.11/site-packages/nvidia/cudnn/lib:/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
+    export KERAS_BACKEND=tensorflow
+
+%runscript
+    source /opt/conda/etc/profile.d/conda.sh
+    conda activate ha-ml
+    exec bash
