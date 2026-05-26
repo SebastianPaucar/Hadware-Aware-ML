@@ -235,3 +235,34 @@ To enter the container through the `.sif` image:
 apptainer shell --nv --bind /uufs/chpc.utah.edu/sys/spack/v019/linux-rocky8-nehalem/gcc-8.5.0/cuda-12.5.0-7pt27rceb2uulofwak7zo3xkzspxgkg2:/usr/local/cuda alma9-haml.sif
 ```
 
+# Required GPU Architecture
+
+**CC (Compute Capability)** is NVIDIA's versioning system for GPU microarchitectures. It describes what hardware features a GPU physically has.
+
+## Fused Kernels
+
+A `cudnn$` operation defined a *fused kernel*, in which cuDNN combines multiple operations into one GPU kernel. Fused kernels are faster because they avoid writing/reading intermediate results to GPU memory. XLA specifically requests this fusion when `jit_compile=True`. Some fused kernels are only implemented for Tensor Core hardware (CC 7.0+).
+
+
+| **Compute Capability** | **Architecture** | **Example GPUs** | **Key Feature** |
+|---|---|---|---|
+| 6.1 | Pascal | GT 1030, GTX 1080 | FP32, basic FP16 |
+| 7.0 | Volta | V100 | 1st-generation Tensor Cores |
+| 7.5 | Turing | T4, RTX 2080 | 2nd-generation Tensor Cores + INT8 |
+| 8.0 | Ampere | A100 | 3rd-generation Tensor Cores |
+
+Pascal (CC 6.1) does not support Tensor Cores, causing the XLA autotuner to fail (`Autotuner could not find any supported configs`) when scanning Tensor Core-dependent kernel configurations. On the T4 (CC 7.5), Tensor Cores are present, the autotuner finds valid configs immediately, and XLA compiles successfully. Modern cuDNN versions increasingly target Tensor Core operations because they provide significantly higher matrix multiplication throughput.
+
+## The hardware/compiler interaction for HGQ2
+
+HGQ2 quantized networks benefit significantly from Tensor Cores because quantization reduces weights to low-bit integers, while Tensor Cores on Turing+ architectures provide dedicated INT8/INT4 execution units for accelerated quantized inference, which is the primary hardware target of HGQ2.
+
+
+* Required hardware: GPU with Compute Capability (CC) 7.0+.
+* Compiler constraint: XLA's cost model prioritizes fused Tensor Core kernels and does not automatically fall back to unfused execution paths on unsupported older hardware.
+
+A T4 GPU is required before running the experiment:
+
+```bash
+salloc -N 1 -n 16 -A notchpeak-shared-short -p notchpeak-shared-short -t 2:00:00 --gres=gpu:t4:1
+```
