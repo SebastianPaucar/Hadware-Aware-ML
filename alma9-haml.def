@@ -47,20 +47,32 @@ From: almalinux:9
     # Install CUDA-enabled PyTorch
     /opt/conda/envs/ha-ml/bin/pip install torch==2.5.1+cu124 --index-url https://download.pytorch.org/whl/cu124
 
-    # Install cuDNN 9.3 for TensorFlow 2.21
-    /opt/conda/envs/ha-ml/bin/pip install nvidia-cudnn-cu12==9.3.0.75
-
-    # Install JAX with CUDA support
+    # Install JAX with CUDA support — this pulls cuDNN 9.22 which works with TF+XLA
     /opt/conda/envs/ha-ml/bin/pip install "jax[cuda12]" --find-links https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
-
-    # Pin nvidia lib versions to avoid conflicts between JAX, PyTorch and TensorFlow
-    /opt/conda/envs/ha-ml/bin/pip install \
-        nvidia-cudnn-cu12==9.3.0.75 \
-        nvidia-cublas-cu12==12.4.5.8 \
-        nvidia-cuda-nvrtc-cu12==12.4.127 \
-        --force-reinstall
+    
+    # Install optree (required by Keras 3.14+)
+    /opt/conda/envs/ha-ml/bin/pip install optree
 
     conda clean -afy
+    
+    # Install ML hardware-aware stack
+    /opt/conda/envs/ha-ml/bin/pip install \
+        onnx \
+        onnxruntime-gpu \
+        tensorflow-model-optimization \
+        py-cpuinfo \
+        gputil \
+        psutil
+
+
+    /opt/conda/envs/ha-ml/bin/pip install \
+        tensorrt \
+        cuda-python \
+        pynvml      
+
+    /opt/conda/envs/ha-ml/bin/pip install nvtx
+
+    /opt/conda/envs/ha-ml/bin/pip install tf2onnx
 
 %environment
     export PATH="/opt/conda/bin:/usr/local/cuda/bin:$PATH"
