@@ -241,8 +241,7 @@ apptainer shell --nv --bind /uufs/chpc.utah.edu/sys/spack/v019/linux-rocky8-neha
 
 ## Fused Kernels
 
-A `cudnn$` operation defined a *fused kernel*, in which cuDNN combines multiple operations into one GPU kernel. Fused kernels are faster because they avoid writing/reading intermediate results to GPU memory. XLA specifically requests this fusion when `jit_compile=True`. Some fused kernels are only implemented for Tensor Core hardware (CC 7.0+).
-
+A `cudnn$` operation defines a fused kernel in which cuDNN combines multiple operations into a single GPU kernel. Fused kernels improve performance by avoiding intermediate reads and writes to GPU memory. XLA explicitly requests this fusion when `jit_compile=True`. Some fused kernels are only implemented for Tensor Core hardware with Compute Capability (CC) 7.0+.
 
 | **Compute Capability** | **Architecture** | **Example GPUs** | **Key Feature** |
 |---|---|---|---|
