@@ -183,8 +183,8 @@ print('PyTorch:', torch.__version__,
       '| cuDNN:', torch.backends.cudnn.version(),
       '| GPU:', torch.cuda.is_available())
 "
-TensorFlow: 2.21.0 | CUDA: 12.5.1 | cuDNN: 9 | GPU: [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
-PyTorch: 2.5.1+cu124 | CUDA: 12.4 | cuDNN: 90300 | GPU: True
+TensorFlow: 2.21.0 | GPU: [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
+PyTorch: 2.5.1+cu124 | cuDNN: 92200 | GPU: True
 ```
 
 The output output confirms that:
