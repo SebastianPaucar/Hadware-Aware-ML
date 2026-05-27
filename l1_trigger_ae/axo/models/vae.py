@@ -38,7 +38,7 @@ def get_encoder(config):
 
     ap_initial_kernel = config["ap_initial_kernel"]
     ap_initial_activation = config["ap_initial_activation"]
-    beta = config["beta"]
+    beta = config["ebops_beta"]   
 
     # Hidden layer quantizer configs
     kq = QuantizerConfig(
@@ -167,7 +167,7 @@ class VariationalAutoEncoderHGQ2(Model):
         self.decoder = get_decoder(config)
 
         self.alpha = config["alpha"]
-        self.beta = config["beta"]
+        self.beta = config["kl_beta"]
         self.reco_scale = self.alpha * (1 - self.beta)
         self.kl_scale = self.beta
 

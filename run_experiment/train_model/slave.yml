@@ -22,7 +22,7 @@ model:
   ap_initial_kernel: 6
   ap_initial_activation: 10
   ap_initial_data: 8
-  beta: 0.000001
+  ebops_beta: 0.000001
 train:
   train_mode: VAE
   VAE_config:
