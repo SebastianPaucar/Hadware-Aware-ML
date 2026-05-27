@@ -1,0 +1,89 @@
+data_config:    
+  Processed_data_path: /scratch/general/vast/u6059911/thesis/Datasets/PData.h5
+determinism:
+  tf_op_determinism: true
+  numpy_determinism: true
+  python_determinism: true
+  global_seed: 123
+model:
+  encoder_config:
+    nodes:
+    - 28
+    - 15
+  latent_dim: 8
+  decoder_config:
+    nodes:
+    - 24
+    - 32
+    - 64
+    - 128
+    - 57
+  features: 57
+  ap_initial_kernel: 6
+  ap_initial_activation: 10
+  ap_initial_data: 8
+  beta: 0.000001
+train:
+  train_mode: VAE
+  VAE_config:
+    alpha: 1
+    beta: 0.604108559135001
+  common:
+    batch_size: 10000
+    n_epochs: 150
+    optimiser_config:
+      optmiser: lion
+      learning_rate: 0.0001
+      weight_decay: 0
+    reconstruction_loss: cyl_PtPz_mae
+callback:
+  lr_schedule:
+    type: lr_schduler
+    name: CDRW
+    config:
+      initial_learning_rate: 0.0001
+      first_decay_steps: 32
+      t_mul: 2.0
+      m_mul: 0.65
+      alpha: 1.0e-06
+      name: CDR_W
+      warmup_epochs: 10
+threshold:
+  target_rate:
+  - 0.15
+  - 0.2
+  - 0.3
+  - 0.6
+  - 1
+  - 2
+  - 3
+  - 5
+  - 10
+  bc_khz: 28608.8064
+  ht_threshold: 280
+  precision:
+  - 8
+  - 5
+  alpha: 1
+additional_metrics: false
+trimmed_encoder: trimmed_encoder_test.h5
+inference:
+  trimmed_encoder_path: ./
+  rate_inference:
+  - 0.5
+  - 10
+  rate_step: 2
+  json_report: inference_report.json
+store:
+  lite_path: /scratch/general/vast/u6059911/RunBaseline/run_all_baseline/lite.h5
+  complete_path: /scratch/general/vast/u6059911/RunBaseline/run_all_baseline/complete.h5
+  temp_path: /scratch/general/vast/u6059911/RunBaseline/run_all_baseline/
+  skip_saving_complete: false
+  build_model_path: /scratch/general/vast/u6059911/RunBaseline/run_all_baseline/build.h5
+report:
+  html_report:
+    generate: true
+    path: axo.html
+  pdf_report:
+    generate: false
+    path: axo.pdf
