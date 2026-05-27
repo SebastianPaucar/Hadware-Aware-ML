@@ -1,2 +1,1 @@
-#from .ae import AutoEncoder
-from .vae import VariationalAutoEncoderHGQ
+from .vae import VariationalAutoEncoderHGQ2
