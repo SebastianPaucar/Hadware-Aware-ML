@@ -188,6 +188,7 @@ class VariationalAutoEncoderHGQ2(Model):
         self.reconstruction_val_loss_tracker = keras.metrics.Mean(name="val_reco_loss")
         self.kl_val_loss_tracker = keras.metrics.Mean(name="val_kl_loss")
 
+    @tf.function(jit_compile=True)
     def train_step(self, data):
         data_in, target = data
         with tf.GradientTape() as tape:
@@ -211,6 +212,7 @@ class VariationalAutoEncoderHGQ2(Model):
             "kl_loss": self.kl_loss_tracker.result(),
         }
 
+    @tf.function(jit_compile=True)
     def test_step(self, data):
         data_in, target = data
         z_mean, z_log_var, z = self.encoder(data_in)

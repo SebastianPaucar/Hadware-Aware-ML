@@ -76,11 +76,11 @@ inference:
   rate_step: 2
   json_report: inference_report.json
 store:
-  lite_path: /scratch/general/vast/u6059911/RunBaseline/run_all_baseline/lite.h5
-  complete_path: /scratch/general/vast/u6059911/RunBaseline/run_all_baseline/complete.h5
-  temp_path: /scratch/general/vast/u6059911/RunBaseline/run_all_baseline/
+  lite_path: /scratch/general/vast/u6059911/thesis/Datasets/lite.h5
+  complete_path: /scratch/general/vast/u6059911/thesis/Datasets/complete.h5
+  temp_path: /scratch/general/vast/u6059911/thesis/Datasets/
   skip_saving_complete: false
-  build_model_path: /scratch/general/vast/u6059911/RunBaseline/run_all_baseline/build.h5
+  build_model_path: /scratch/general/vast/u6059911/thesis/Datasets/build.h5
 report:
   html_report:
     generate: true

@@ -18,7 +18,7 @@ def run(config):
     loss_reco, loss_kld = _setup_losses(config, scale, bias)
     vae = _setup_model(config, loss_reco, loss_kld)
     opt = _setup_optimizer(config)
-    vae.compile(optimizer=opt, jit_compile=False)
+    vae.compile(optimizer=opt, jit_compile=True)
     callbacks = _setup_callbacks(config)
 
     history = vae.fit(
