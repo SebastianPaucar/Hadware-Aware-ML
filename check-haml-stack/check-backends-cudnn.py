@@ -5,7 +5,6 @@ import tensorflow as tf
 import torch
 import jax
 
-print('=== Sandbox ===')
 print('Keras:      ', keras.__version__)
 print('TensorFlow: ', tf.__version__)
 print('PyTorch:    ', torch.__version__)
