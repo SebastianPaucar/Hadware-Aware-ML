@@ -222,6 +222,7 @@ threshold:
   - 8
   - 5
   alpha: 1
+  predict_batch_size: 120000
 additional_metrics: false
 trimmed_encoder: trimmed_encoder_test.h5
 inference:
