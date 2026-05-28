@@ -85,6 +85,3 @@ report:
   html_report:
     generate: true
     path: axo.html
-  pdf_report:
-    generate: false
-    path: axo.pdf

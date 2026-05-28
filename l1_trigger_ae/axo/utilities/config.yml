@@ -242,6 +242,3 @@ report:
   html_report:
     generate: true
     path: axo.html
-  pdf_report:
-    generate: true
-    path: axo.pdf
