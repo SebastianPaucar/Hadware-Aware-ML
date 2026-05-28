@@ -10,7 +10,7 @@ from .. import optim
 from .. import metric
 from .. import callbacks as axo_callbacks
 from .. import utilities
-from ..callbacks import BitwidthLogger, PruningMetrics, HardwareLogger
+from ..callbacks import BitwidthLogger, HardwareLogger
 
 
 def run(config):
@@ -118,7 +118,7 @@ def _setup_callbacks(config):
 
     callbacks.append(tf.keras.callbacks.LearningRateScheduler(wrapped_lr_schedule, verbose=1))
     callbacks.append(BitwidthLogger())
-    callbacks.append(PruningMetrics(prune_threshold=0.5))
+    callbacks.append(HardwareLogger())
     return callbacks
 
 
@@ -160,7 +160,7 @@ def _generate_results(config, vae, model, history):
     history_dict = utilities.retrieve.get_history_dict(config["store"]["lite_path"])
 
     report_config = config["report"]
-    if report_config["html_report"]["generate"] or report_config["pdf_report"]["generate"]:
+    if report_config["html_report"]["generate"] 
         print("Report generation flag found !!")
         utilities.generate_axolotl_html_report(
             config=config,
@@ -169,5 +169,4 @@ def _generate_results(config, vae, model, history):
             threshold_dict=threshold_dict,
             history_dict=history_dict,
             output_file=report_config["html_report"]["path"],
-            pdf_file=report_config["pdf_report"]["path"]
         )

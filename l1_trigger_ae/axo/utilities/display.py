@@ -344,29 +344,3 @@ def generate_axolotl_html_report(config, dict_axo, histogram_dict, threshold_dic
         with open(output_file, "w") as file:
             file.write(html_output)
         print(f"HTML file generated: {output_file}")
-    
-    if pdf_file is not None:
-        HTML(string=html_output).write_pdf(pdf_file, stylesheets=[CSS(string='''
-        @page { 
-            size: A4 landscape; 
-            margin: 1cm;
-            @bottom-left {
-                content: counter(page);
-            } 
-        } 
-        body {
-            font-size: 10pt;
-        }
-        h1, h2, h3 {
-            font-size: 12pt;
-        }
-        table {
-            font-size: 9pt;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-        }
-        ''')])
-        print(f"PDF file generated: {pdf_file}")
-
