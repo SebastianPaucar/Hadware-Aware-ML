@@ -10,7 +10,7 @@ from .. import optim
 from .. import metric
 from .. import callbacks as axo_callbacks
 from .. import utilities
-from ..callbacks import BitwidthLogger, PruningMetrics
+from ..callbacks import BitwidthLogger, PruningMetrics, HardwareLogger
 
 
 def run(config):

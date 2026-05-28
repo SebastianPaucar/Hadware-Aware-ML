@@ -4,7 +4,7 @@ import pynvml
 import tensorflow as tf
 
 
-class HardwareMetricsCallback(tf.keras.callbacks.Callback):
+class HardwareLogger(tf.keras.callbacks.Callback):
     """
     Keras callback that tracks GPU power, memory, utilization
     and epoch time per epoch. 
