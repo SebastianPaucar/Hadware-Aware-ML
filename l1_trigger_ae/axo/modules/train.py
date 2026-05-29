@@ -10,7 +10,7 @@ from .. import optim
 from .. import metric
 from .. import callbacks as axo_callbacks
 from .. import utilities
-from ..callbacks import BitwidthLogger, HardwareLogger
+from ..callbacks import BitwidthLogger, HardwareLogger, EncoderParetoFront
 
 
 def run(config):
@@ -24,7 +24,7 @@ def run(config):
     history = vae.fit(
         x_train,
         x_train,
-        callbacks=[*callbacks, FreeEBOPs()],
+        callbacks=callbacks,
         batch_size=config["train"]["common"]["batch_size"],
         epochs=config["train"]["common"]["n_epochs"],
         validation_split=0.1,
@@ -117,15 +117,15 @@ def _setup_callbacks(config):
         return float(compute_lrsc(**config_to_lrsc)(epoch, lr))
 
     callbacks.append(tf.keras.callbacks.LearningRateScheduler(wrapped_lr_schedule, verbose=1))
+    callbacks.append(FreeEBOPs())
     callbacks.append(BitwidthLogger())
     callbacks.append(HardwareLogger())
-    pareto_path = config["store"]["temp_path"]
     callbacks.append(
-    ParetoFront(
-        path=pareto_path,
+    EncoderParetoFront(
+        path=config["store"]["temp_path"],
         metrics=["ebops", "val_reco_loss"],
         sides=[-1, -1],   # -1 = minimize both
-        fname_format="pareto_ep{epoch:03d}_ebops{ebops:.0f}_reco{val_reco_loss:.4f}",
+        fname_format="pareto_ep{epoch:03d}_ebops{ebops:.0f}_reco{val_reco_loss:.4f}.keras",
         )
     )
     return callbacks
