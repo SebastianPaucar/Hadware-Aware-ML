@@ -74,6 +74,8 @@ From: almalinux:9
 
     /opt/conda/envs/ha-ml/bin/pip install tf2onnx
 
+    /opt/conda/envs/ha-ml/bin/pip weasyprint pyyaml
+
 %environment
     export PATH="/opt/conda/bin:/usr/local/cuda/bin:$PATH"
     export LD_LIBRARY_PATH="/opt/conda/envs/ha-ml/lib/python3.11/site-packages/nvidia/cudnn/lib:/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
