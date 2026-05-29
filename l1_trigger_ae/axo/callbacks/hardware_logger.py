@@ -3,6 +3,21 @@ import numpy as np
 import pynvml
 import tensorflow as tf
 
+try:
+    from pynvml import (nvmlInit, nvmlShutdown, nvmlDeviceGetHandleByIndex,
+                        nvmlDeviceGetMemoryInfo, nvmlDeviceGetUtilizationRates,
+                        nvmlDeviceGetPowerUsage, NVMLError)
+    NVML_AVAILABLE = True
+except ImportError:
+    NVML_AVAILABLE = False
+
+
+def _safe_nvml(fn, fallback=0.0):
+    try:
+        return fn()
+    except Exception:
+        return fallback
+
 
 class HardwareLogger(tf.keras.callbacks.Callback):
     """
@@ -12,8 +27,15 @@ class HardwareLogger(tf.keras.callbacks.Callback):
 
     def __init__(self, device_id=0):
         super().__init__()
-        pynvml.nvmlInit()
-        self.handle  = pynvml.nvmlDeviceGetHandleByIndex(device_id)
+        self.handle = None
+        if NVML_AVAILABLE:
+            try:
+                nvmlInit()
+                self.handle = nvmlDeviceGetHandleByIndex(device_id)
+            except Exception as e:
+                print(f"[HardwareLogger] NVML init failed: {e}. Hardware logging disabled.")
+
+
         self.t_start = None
         self.history = {
             "epoch_time_s":    [],
@@ -27,28 +49,35 @@ class HardwareLogger(tf.keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         elapsed = time.perf_counter() - self.t_start
-        mem     = pynvml.nvmlDeviceGetMemoryInfo(self.handle)
-        util    = pynvml.nvmlDeviceGetUtilizationRates(self.handle)
-        power   = pynvml.nvmlDeviceGetPowerUsage(self.handle) / 1000
+
+        if self.handle is not None:
+            mem   = _safe_nvml(lambda: nvmlDeviceGetMemoryInfo(self.handle))
+            util  = _safe_nvml(lambda: nvmlDeviceGetUtilizationRates(self.handle))
+            power = _safe_nvml(lambda: nvmlDeviceGetPowerUsage(self.handle) / 1000)
+            mem_mb  = mem.used / 1024**2 if hasattr(mem, 'used') else 0.0
+            gpu_pct = util.gpu if hasattr(util, 'gpu') else 0.0
+        else:
+            mem_mb = gpu_pct = power = 0.0
 
         # Store in callback history
         self.history["epoch_time_s"].append(elapsed)
-        self.history["gpu_util_pct"].append(util.gpu)
-        self.history["gpu_mem_used_mb"].append(mem.used / 1024**2)
+        self.history["gpu_util_pct"].append(gpu_pct)
+        self.history["gpu_mem_used_mb"].append(mem_mb)
         self.history["gpu_power_w"].append(power)
 
         # Inject into Keras logs so it appears in model.history
         # and can be stored by utilities.store_axo
         if logs is not None:
             logs["epoch_time_s"]    = elapsed
-            logs["gpu_util_pct"]    = util.gpu
-            logs["gpu_mem_used_mb"] = mem.used / 1024**2
+            logs["gpu_util_pct"]    = gpu_pct
+            logs["gpu_mem_used_mb"] = mem_mb
             logs["gpu_power_w"]     = power
 
         print(f"\n  [HW] time={elapsed:.2f}s | "
-              f"GPU={util.gpu}% | "
-              f"mem={mem.used/1024**2:.0f}MB | "
+              f"GPU={gpu_pct}% | "
+              f"mem={mem_mb:.0f}MB | "
               f"power={power:.1f}W")
+
 
     def on_train_end(self, logs=None):
         times  = self.history["epoch_time_s"]
@@ -67,7 +96,8 @@ class HardwareLogger(tf.keras.callbacks.Callback):
         print("="*60)
 
     def __del__(self):
-        try:
-            pynvml.nvmlShutdown()
-        except Exception:
-            pass
+        if NVML_AVAILABLE:
+            try:
+                nvmlShutdown()
+            except Exception:
+                pass

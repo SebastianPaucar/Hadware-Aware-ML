@@ -1,3 +1,3 @@
 from .lr_scheduler import *
 from .bitwidth_logger import BitwidthLogger
-from .pruning_logger import PruningMetrics
+from .hardware_logger import HardwareLogger

@@ -4,7 +4,6 @@ import mplhep as hep
 import math
 import io
 import base64
-from weasyprint import HTML, CSS
 
 def generate_axolotl_html_report(config, dict_axo, histogram_dict, threshold_dict, history_dict, output_file, pdf_file=None):
     plt.style.use('default')

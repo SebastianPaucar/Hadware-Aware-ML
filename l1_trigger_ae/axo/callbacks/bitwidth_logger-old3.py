@@ -3,8 +3,9 @@ import numpy as np
 
 
 def _iter_quantized_layers(model):
-    """Recursively yield layers with HGQ2 quantizer vars. Called once at train start."""
+    """Recursively yield (layer_name_path, layer) for all layers with HGQ2 quantizer vars."""
     for layer in model.layers:
+        # Recurse into sub-models
         if hasattr(layer, 'layers'):
             yield from _iter_quantized_layers(layer)
         else:
@@ -21,17 +22,14 @@ class BitwidthLogger(keras.callbacks.Callback):
     Logs HGQ2 quantizer bitwidth statistics per epoch, per quantized layer.
     Architecture-agnostic: works with any HGQ2 quantized layer (QDense, QConv, etc.)
     Recurses into sub-models (encoder, decoder) to find individual layers.
-    Layer discovery is cached once at train start to avoid per-epoch overhead.
     """
-
-    def on_train_begin(self, logs=None):
-        self._quantized_layers = list(_iter_quantized_layers(self.model))
 
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
+
         all_b, all_i, all_f = [], [], []
 
-        for layer in self._quantized_layers:
+        for layer in _iter_quantized_layers(self.model):
             b_vals, i_vals, f_vals = [], [], []
 
             for var in layer.trainable_variables:
@@ -61,6 +59,7 @@ class BitwidthLogger(keras.callbacks.Callback):
                     np.mean(i_vals) + np.mean(f_vals) + 1
                 )
 
+        # Global summary across all quantized layers
         if all_b:
             logs["avg_total_bits"]      = float(np.mean(all_b))
             logs["min_total_bits"]      = float(np.min(all_b))

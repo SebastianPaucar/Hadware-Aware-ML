@@ -160,7 +160,7 @@ def _generate_results(config, vae, model, history):
     history_dict = utilities.retrieve.get_history_dict(config["store"]["lite_path"])
 
     report_config = config["report"]
-    if report_config["html_report"]["generate"] 
+    if report_config["html_report"]["generate"]: 
         print("Report generation flag found !!")
         utilities.generate_axolotl_html_report(
             config=config,
