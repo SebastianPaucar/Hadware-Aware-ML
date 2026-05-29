@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 import h5py
 from keras.models import Model
-from hgq.utils.sugar import FreeEBOPs
+from hgq.utils.sugar import FreeEBOPs, ParetoFront
 
 from .. import losses
 from .. import models
@@ -119,6 +119,15 @@ def _setup_callbacks(config):
     callbacks.append(tf.keras.callbacks.LearningRateScheduler(wrapped_lr_schedule, verbose=1))
     callbacks.append(BitwidthLogger())
     callbacks.append(HardwareLogger())
+    pareto_path = config["store"]["temp_path"]
+    callbacks.append(
+    ParetoFront(
+        path=pareto_path,
+        metrics=["ebops", "val_reco_loss"],
+        sides=[-1, -1],   # -1 = minimize both
+        fname_format="pareto_ep{epoch:03d}_ebops{ebops:.0f}_reco{val_reco_loss:.4f}",
+        )
+    )
     return callbacks
 
 
