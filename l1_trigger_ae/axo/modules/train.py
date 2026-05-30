@@ -58,9 +58,15 @@ def _setup_losses(config, scale, bias):
         mask=constituents,
         name="Reco_loss"
     )
-    loss_kld = losses.kld()
+    kld_name    = common["kld_loss"]
+    kld_config  = common.get("kld_config", {})
+    compute_kld = getattr(losses, kld_name)
+    loss_kld    = compute_kld(**kld_config)
+    
     print("Configured reconstruction loss:", config["train"]["common"]["reconstruction_loss"])
     print("Loss callable found:", compute_loss)
+    print(f"Configured KL loss: {kld_name}  config={kld_config}")
+    
     return loss_reco, loss_kld
 
 
