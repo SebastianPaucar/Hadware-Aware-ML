@@ -4,8 +4,12 @@ K = tf.keras.backend
 from tensorflow.keras.losses import Loss
 
 class _kld(): # This is a special case and won't inherit the loss class unlike the other loss functions
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__()
+        
+        # Optional: A helpful print statement so you know it absorbed something
+        if kwargs:
+            print(f"[INFO] KLD is ignoring unused arguments: {list(kwargs.keys())}")
         
     def __call__(self,mu, log_var):
         log_var = K.cast(log_var, dtype='float32')
