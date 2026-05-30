@@ -15,7 +15,7 @@ from ..callbacks import BitwidthLogger, HardwareLogger, EncoderParetoFront
 
 def run(config):
     x_train, x_test, scale, bias = _load_data(config)
-    loss_reco, loss_kld = _setup_losses(config, scale, bias)
+    loss_reco, loss_kld = _setup_losses(config, scale, bias, dataset_size=len(x_train))
     vae = _setup_model(config, loss_reco, loss_kld)
     opt = _setup_optimizer(config)
     vae.compile(optimizer=opt, jit_compile=True)
@@ -48,7 +48,7 @@ def _load_data(config):
     return x_train, x_test, scale, bias
 
 
-def _setup_losses(config, scale, bias):
+def _setup_losses(config, scale, bias, data_size):
     loss_name = config["train"]["common"]["reconstruction_loss"].split("_loss")[0]
     constituents = config["data_config"]["Read_configs"]["BACKGROUND"]["constituents"]
     compute_loss = getattr(losses, f"{loss_name}_loss")
@@ -58,8 +58,9 @@ def _setup_losses(config, scale, bias):
         mask=constituents,
         name="Reco_loss"
     )
-    kld_name    = common["kld_loss"]
-    kld_config  = common.get("kld_config", {})
+    kld_name    = config["train"]["common"]["kld_loss"]
+    kld_config  = config["train"]["common"].get("kld_config", {})
+    kld_config["dataset_size"] = dataset_size
     compute_kld = getattr(losses, kld_name)
     loss_kld    = compute_kld(**kld_config)
     

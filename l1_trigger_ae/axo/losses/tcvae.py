@@ -9,35 +9,36 @@ class _tcvae():
         self.beta  = float(beta)
         self.dataset_size = dataset_size
 
-    def __call__(self, mu, log_var):
+    def __call__(self, z, mu, log_var):
+        z       = tf.cast(z,       dtype='float32')
         mu      = tf.cast(mu,      dtype='float32')
         log_var = tf.cast(log_var, dtype='float32')
-        mi, tc, dw_kl = self._decompose(mu, log_var)
+        mi, tc, dw_kl = self._decompose(z, mu, log_var)
         return self.alpha * mi + self.gamma * tc + self.beta * dw_kl
 
-    def _decompose(self, z_mean, z_log_var):
-        eps = tf.random.normal(tf.shape(z_mean), dtype='float32')
-        z   = z_mean + tf.exp(0.5 * z_log_var) * eps
-
+    def _decompose(self, z, z_mean, z_log_var):
         M = tf.cast(tf.shape(z)[0], tf.float32)
-        N = tf.cast(self.dataset_size if self.dataset_size is not None else tf.shape(z)[0], tf.float32)
-
+        N = tf.cast(self.dataset_size, tf.float32)
+        log_weight = tf.math.log(M * N)
+        
         z_i       = tf.expand_dims(z,         axis=1)
         mu_j      = tf.expand_dims(z_mean,    axis=0)
         log_var_j = tf.expand_dims(z_log_var, axis=0)
 
         log_q_z_given_x = self._log_normal(z_i, mu_j, log_var_j)        # (M, M, D)
-
+        
+        # log q(z)
         log_q_z_given_x_sum_d = tf.reduce_sum(log_q_z_given_x, axis=2)  # (M, M)
-        log_q_z = tf.reduce_logsumexp(log_q_z_given_x_sum_d, axis=1) - tf.math.log(M * N)
+        log_q_z = tf.reduce_logsumexp(log_q_z_given_x_sum_d, axis=1) - log_weight
 
+        # log q(z|x)
         log_q_z_given_xi = tf.reduce_sum(self._log_normal(z, z_mean, z_log_var), axis=1)
+        
+        # Apply log_weight subtraction BEFORE summing across latent dimensions
+        log_q_z_per_dim = tf.reduce_logsumexp(log_q_z_given_x, axis=1) - log_weight # (M, D)
+        log_q_z_product = tf.reduce_sum(log_q_z_per_dim, axis=1)                    # (M,)
 
-        log_q_z_product = (
-            tf.reduce_sum(tf.reduce_logsumexp(log_q_z_given_x, axis=1), axis=1)
-            - tf.math.log(M * N)
-        )
-
+        # log p(z)
         log_p_z = tf.reduce_sum(self._log_standard_normal(z), axis=1)
 
         mi    = tf.reduce_mean(log_q_z_given_xi - log_q_z)
