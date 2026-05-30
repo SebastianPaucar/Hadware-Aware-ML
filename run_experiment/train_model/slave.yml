@@ -29,13 +29,18 @@ train:
     alpha: 1
     kl_beta: 0.604108559135001
   common:
-    batch_size: 10000
+    batch_size: 256
     n_epochs: 5
     optimiser_config:
       optmiser: lion
       learning_rate: 0.0001
       weight_decay: 0
     reconstruction_loss: cyl_PtPz_mae
+    kld_loss: tcvae
+    kld_config:
+      gamma: 6.0
+      alpha: 1.0
+      beta: 1.0
 callback:
   lr_schedule:
     type: lr_schduler

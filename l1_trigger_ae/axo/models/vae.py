@@ -195,7 +195,7 @@ class VariationalAutoEncoderHGQ2(Model):
             z_mean, z_log_var, z = self.encoder(data_in, training=True)
             reconstruction = self.decoder(z, training=True)
             reconstruction_loss = self.reco_scale * self.reco_loss(target, reconstruction)
-            kl_loss = self.kl_scale * self.kl_loss(z_mean, z_log_var)
+            kl_loss = self.kl_scale * self.kl_loss(z, z_mean, z_log_var)
             total_loss = reconstruction_loss + kl_loss
             total_loss += tf.reduce_sum(self.encoder.losses) + tf.reduce_sum(self.decoder.losses)
 
@@ -219,7 +219,7 @@ class VariationalAutoEncoderHGQ2(Model):
         reconstruction = self.decoder(z)
 
         reconstruction_loss = self.reco_scale * self.reco_loss(target, reconstruction)
-        kl_loss = self.kl_scale * self.kl_loss(z_mean, z_log_var)
+        kl_loss = self.kl_scale * self.kl_loss(z, z_mean, z_log_var)
         total_loss = reconstruction_loss + kl_loss
 
         self.total_val_loss_tracker.update_state(total_loss)

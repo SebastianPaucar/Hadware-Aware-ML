@@ -48,7 +48,7 @@ def _load_data(config):
     return x_train, x_test, scale, bias
 
 
-def _setup_losses(config, scale, bias, data_size):
+def _setup_losses(config, scale, bias, dataset_size):
     loss_name = config["train"]["common"]["reconstruction_loss"].split("_loss")[0]
     constituents = config["data_config"]["Read_configs"]["BACKGROUND"]["constituents"]
     compute_loss = getattr(losses, f"{loss_name}_loss")
