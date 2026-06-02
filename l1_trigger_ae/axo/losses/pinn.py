@@ -18,7 +18,6 @@ class _pinn_loss(L1ADBaseLoss):
                  unscale_energy=False, name="PINN_loss"):
         super().__init__(norm_scales, norm_biases, mask,
                          unscale_energy, name=name)
-        self.alpha = float(alpha)
 
     def call(self, y_true, y_pred):
         # ── Unscale exactly as cyl_PtPz_mae does ─────────────────────
@@ -53,4 +52,4 @@ class _pinn_loss(L1ADBaseLoss):
             + tf.square(total_py_true - total_py_pred)
         )   # (batch,)
 
-        return momentum_penalty
+        return momentum_penalty / tf.cast(self.NOF_CONSTITUENTS, tf.float32)
