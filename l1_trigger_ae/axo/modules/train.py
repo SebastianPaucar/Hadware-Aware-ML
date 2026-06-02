@@ -47,25 +47,53 @@ def _load_data(config):
     x_test = np.reshape(x_test, (x_test.shape[0], -1))
     return x_train, x_test, scale, bias
 
+def _build_reco_loss(config, scale, bias):
+
+    raw = config["train"]["common"]["reconstruction_loss"]
+    constituents = config["data_config"]["Read_configs"]["BACKGROUND"]["constituents"]
+
+    if isinstance(raw, str):
+        specs = [{"name": raw, "weight": 1.0}]
+    elif isinstance(raw, list):
+        specs = []
+        for entry in raw:
+            if isinstance(entry, str):
+                specs.append({"name": entry, "weight": 1.0})
+            else:
+                specs.append(entry) 
+    else:
+        raise ValueError(f"Unexpected reconstruction_loss format: {raw!r}")
+
+    components = []
+    for spec in specs:
+        loss_name   = spec["name"].split("_loss")[0]  
+        weight      = float(spec.get("weight", 1.0))
+        compute_loss = getattr(losses, f"{loss_name}_loss")
+        loss_fn = compute_loss(
+            norm_scales=scale,
+            norm_biases=bias,
+            mask=constituents,
+            name=loss_name,
+        )
+        components.append((loss_fn, weight))
+        print(f"  + reco component: {loss_name}  weight={weight}  fn={compute_loss}")
+
+
+    if len(components) == 1:
+        return components[0][0]
+
+    return losses.CompositeLoss(components, name="Reco_loss")
+
 
 def _setup_losses(config, scale, bias, dataset_size):
-    loss_name = config["train"]["common"]["reconstruction_loss"].split("_loss")[0]
-    constituents = config["data_config"]["Read_configs"]["BACKGROUND"]["constituents"]
-    compute_loss = getattr(losses, f"{loss_name}_loss")
-    loss_reco = compute_loss(
-        norm_scales=scale,
-        norm_biases=bias,
-        mask=constituents,
-        name="Reco_loss"
-    )
+    
+    loss_reco = _build_reco_loss(config, scale, bias)
     kld_name    = config["train"]["common"]["kld_loss"]
     kld_config  = config["train"]["common"].get("kld_config", {})
     kld_config["dataset_size"] = dataset_size
     compute_kld = getattr(losses, kld_name)
     loss_kld    = compute_kld(**kld_config)
     
-    print("Configured reconstruction loss:", config["train"]["common"]["reconstruction_loss"])
-    print("Loss callable found:", compute_loss)
     print(f"Configured KL loss: {kld_name}  config={kld_config}")
     
     return loss_reco, loss_kld

@@ -33,16 +33,6 @@ class _pinn_loss(L1ADBaseLoss):
         pt_pred       = y_pred[:, :, 0]
         phi_pred      = y_pred[:, :, 2]
 
-        # pz uses legacy implementation (consistent with cyl_PtPz)
-        pz      = pt      * tf.math.sinh(eta)
-        pz_pred = pt_pred * tf.math.sinh(eta)
-
-        # ── Base MAE loss (identical to cyl_PtPz) ─────────────────
-        mae_loss = K.mean(
-            K.square(pt - pt_pred) + K.square(pz - pz_pred),
-            axis=1
-        )   # (batch,)
-
         # ── Momentum conservation penalty ─────────────────────────────
         # px = pT * cos(phi),  py = pT * sin(phi)
         # Penalty: the reconstructed event must preserve the total
@@ -63,4 +53,4 @@ class _pinn_loss(L1ADBaseLoss):
             + tf.square(total_py_true - total_py_pred)
         )   # (batch,)
 
-        return mae_loss + self.alpha * momentum_penalty
+        return self.alpha * momentum_penalty
