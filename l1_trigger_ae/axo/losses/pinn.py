@@ -15,7 +15,7 @@ class _pinn_loss(L1ADBaseLoss):
     """
 
     def __init__(self, norm_scales, norm_biases, mask,
-                 alpha=1.0, unscale_energy=False, name="PINN_loss"):
+                 unscale_energy=False, name="PINN_loss"):
         super().__init__(norm_scales, norm_biases, mask,
                          unscale_energy, name=name)
         self.alpha = float(alpha)
@@ -53,4 +53,4 @@ class _pinn_loss(L1ADBaseLoss):
             + tf.square(total_py_true - total_py_pred)
         )   # (batch,)
 
-        return self.alpha * momentum_penalty
+        return momentum_penalty
