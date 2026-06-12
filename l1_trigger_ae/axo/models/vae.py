@@ -170,6 +170,7 @@ class VariationalAutoEncoderHGQ2(Model):
         self.beta = config["kl_beta"]
         self.reco_scale = self.alpha * (1 - self.beta)
         self.kl_scale = self.beta
+        self.compact_scale = config.get("compactness_beta", 0.0)
 
         self.reco_loss = reco_loss
         self.kl_loss = kld_loss
@@ -187,6 +188,8 @@ class VariationalAutoEncoderHGQ2(Model):
         self.total_val_loss_tracker = keras.metrics.Mean(name="total_val_loss")
         self.reconstruction_val_loss_tracker = keras.metrics.Mean(name="val_reco_loss")
         self.kl_val_loss_tracker = keras.metrics.Mean(name="val_kl_loss")
+        self.compact_loss_tracker = keras.metrics.Mean(name="compact_loss")
+        self.compact_val_loss_tracker = keras.metrics.Mean(name="val_compact_loss")
 
     @tf.function(jit_compile=True)
     def train_step(self, data):
@@ -194,9 +197,12 @@ class VariationalAutoEncoderHGQ2(Model):
         with tf.GradientTape() as tape:
             z_mean, z_log_var, z = self.encoder(data_in, training=True)
             reconstruction = self.decoder(z, training=True)
+            
             reconstruction_loss = self.reco_scale * self.reco_loss(target, reconstruction)
             kl_loss = self.kl_scale * self.kl_loss(z, z_mean, z_log_var)
-            total_loss = reconstruction_loss + kl_loss
+            compact_loss = self.compact_scale * tf.reduce_mean(tf.reduce_sum(tf.square(z_mean), axis=1))
+            
+            total_loss = reconstruction_loss + kl_loss + compact_loss
             total_loss += tf.reduce_sum(self.encoder.losses) + tf.reduce_sum(self.decoder.losses)
 
         grads = tape.gradient(total_loss, self.trainable_weights)
@@ -205,11 +211,13 @@ class VariationalAutoEncoderHGQ2(Model):
         self.total_loss_tracker.update_state(total_loss)
         self.reconstruction_loss_tracker.update_state(reconstruction_loss)
         self.kl_loss_tracker.update_state(kl_loss)
+        self.compact_loss_tracker.update_state(compact_loss)
 
         return {
             "loss": self.total_loss_tracker.result(),
             "reco_loss": self.reconstruction_loss_tracker.result(),
             "kl_loss": self.kl_loss_tracker.result(),
+            "compact_loss": self.compact_loss_tracker.result()
         }
 
     @tf.function(jit_compile=True)
@@ -220,14 +228,18 @@ class VariationalAutoEncoderHGQ2(Model):
 
         reconstruction_loss = self.reco_scale * self.reco_loss(target, reconstruction)
         kl_loss = self.kl_scale * self.kl_loss(z, z_mean, z_log_var)
-        total_loss = reconstruction_loss + kl_loss
+        compact_loss = self.compact_scale * tf.reduce_mean(tf.reduce_sum(tf.square(z_mean), axis=1))
+
+        total_loss = reconstruction_loss + kl_loss + compact_loss
 
         self.total_val_loss_tracker.update_state(total_loss)
         self.reconstruction_val_loss_tracker.update_state(reconstruction_loss)
         self.kl_val_loss_tracker.update_state(kl_loss)
+        self.compact_val_loss_tracker.update_state(compact_loss)
 
         return {
             "loss": self.total_val_loss_tracker.result(),
             "reco_loss": self.reconstruction_val_loss_tracker.result(),
             "kl_loss": self.kl_val_loss_tracker.result(),
+            "val_compact_loss": self.compact_val_loss_tracker.result()
         }
