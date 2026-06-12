@@ -68,15 +68,17 @@ def _build_reco_loss(config, scale, bias):
     for spec in specs:
         loss_name   = spec["name"].split("_loss")[0]  
         weight      = float(spec.get("weight", 1.0))
+        extra_kwargs = {k: v for k, v in spec.items() if k not in ("name", "weight")}
         compute_loss = getattr(losses, f"{loss_name}_loss")
         loss_fn = compute_loss(
             norm_scales=scale,
             norm_biases=bias,
             mask=constituents,
             name=loss_name,
+            **extra_kwargs
         )
         components.append((loss_fn, weight))
-        print(f"  + reco component: {loss_name}  weight={weight}  fn={compute_loss}")
+        print(f"  + reco component: {loss_name}  weight={weight}  extra={extra_kwargs}  fn={compute_loss}")
 
 
     if len(components) == 1:
